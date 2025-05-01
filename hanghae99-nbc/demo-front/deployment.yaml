@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-front
+  labels:
+    app: demo-front
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo-front
+  template:
+    metadata:
+      labels:
+        app: demo-front
+    spec:
+      containers:
+      - name: demo-front
+        image: localhost:5001/demo-front:0.0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+

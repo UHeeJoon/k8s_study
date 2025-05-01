@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-front-service
+spec:
+  selector:
+    app: demo-front
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
