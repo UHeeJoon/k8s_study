@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+spec:
+  selector:
+    matchLabels:
+      app: db
+  replicas: 3
+  serviceName: db-service-headless
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - name: pg-db
+        image: postgres
+        ports:
+        - name: postgresql
+          containerPort: 5432
+        readinessProbe:
+          tcpSocket:
+            port: 5432
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: 5432
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+        env:
+        - name: POSTGRES_PASSWORD
+          value: fighting
+      volumes:
+      - name: init-scripts
+        configMap:
+          name: db-master-slave-config
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 10Gi

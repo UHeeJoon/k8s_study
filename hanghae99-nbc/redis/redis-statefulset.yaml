@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  replicas: 6
+  serviceName: redis-service-headless
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        command: ["redis-server"]
+        args: ["/usr/local/etc/redis/redis.conf"]
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: redis
+          containerPort: 6379
+        - name: cluster-port
+          containerPort: 16379
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "redis-cli -h $(hostname) -a ${REDIS_PASSWORD} ping"
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "redis-cli -h $(hostname) -a ${REDIS_PASSWORD} ping"
+          initialDelaySeconds: 20
+          periodSeconds: 3
+        volumeMounts:
+        - name: redis-config
+          mountPath: /usr/local/etc/redis
+      volumes:
+      - name: redis-config
+        configMap:
+          name: redis-config
